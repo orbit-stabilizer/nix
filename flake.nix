@@ -1,0 +1,280 @@
+{
+  description = "nix-darwin system flake";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-homebrew = {
+      url = "github:zhaofengli-wip/nix-homebrew";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nix-darwin,
+      home-manager,
+      nix-homebrew,
+    }:
+    let
+      configuration =
+        { pkgs, config, ... }:
+        {
+          # List packages installed in system profile. To search by name, run:
+          # $ nix-env -qaP | grep wget
+          environment.systemPackages = [
+            pkgs.brave
+            pkgs.keepassxc
+            pkgs.syncthing
+            pkgs.skhd
+            pkgs.yabai
+            pkgs.discord
+            pkgs.signal-desktop
+            pkgs.clojure
+            pkgs.ripgrep
+            pkgs.cargo
+            pkgs.nixfmt-rfc-style
+            pkgs.zoom-us
+            pkgs.netflix
+            pkgs.quarto
+            pkgs.stow
+          ];
+
+          # Setting MacOS settings
+          system.defaults = {
+            dock.autohide = true;
+            finder.FXPreferredViewStyle = "clmv";
+            NSGlobalDomain.AppleInterfaceStyle = "Dark";
+            NSGlobalDomain.KeyRepeat = 2;
+            screencapture.location = "~/Pictures/screenshots";
+
+            # For yabai
+            spaces.spans-displays = false;
+            WindowManager.EnableStandardClickToShowDesktop = false;
+          };
+          system.keyboard = {
+            enableKeyMapping = true;
+            remapCapsLockToEscape = true;
+          };
+
+          # Setting up Homebrew
+          homebrew = {
+            enable = true;
+            casks = [
+              "obs"
+            ];
+            onActivation.cleanup = "zap";
+            onActivation.autoUpdate = true;
+            onActivation.upgrade = true;
+          };
+
+          services.yabai = {
+            enable = true;
+            config = {
+              layout = "bsp";
+              top_padding = "0";
+              bottom_padding = "0";
+              left_padding = "0";
+              right_padding = "0";
+              window_gap = "0";
+              focus_follows_mouse = "autoraise";
+              mouse_follows_focus = "on";
+              window_placement = "second_child";
+            };
+          };
+
+          services.skhd = {
+            enable = true;
+            skhdConfig = ''
+                                      # change monitor focus
+                                      cmd - m : yabai -m display --focus next || yabai -m display --focus first
+
+                                      # move windows
+                                      shift + cmd - h : yabai -m window --warp west || $(yabai -m window --display west; yabai -m display --focus west)
+                                      shift + cmd - j : yabai -m window --warp south || $(yabai -m window --display south; yabai -m display --focus south)
+                                      shift + cmd - k : yabai -m window --warp north || $(yabai -m window --display north; yabai -m display --focus north)
+                                      shift + cmd - l : yabai -m window --warp east || $(yabai -m window --display east; yabai -m display --focus east)
+
+                                      # focus windows
+                                      cmd - x : yabai -m window --focus recent || yabai -m display --focus recent
+                                      cmd - h : yabai -m window --focus west || yabai -m display --focus west
+                                      cmd - j : yabai -m window --focus south || yabai -m display --focus south
+                                      cmd - k : yabai -m window --focus north || yabai -m display --focus north
+                                      cmd - l : yabai -m window --focus east || yabai -m display --focus east
+
+                                      # Open terminal
+                                      cmd - return : ~/Applications/"Home Manager Apps"/WezTerm.app/wezterm
+
+                                      # Open browser
+                                      shift + cmd - return : open -na /run/current-system/sw/bin/brave
+
+              			# Open discord
+              			shift + ctrl - return : /run/current-system/sw/bin/Discord
+                            	'';
+          };
+
+          # Necessary for using flakes on this system.
+          nix.settings.experimental-features = "nix-command flakes";
+
+          # Enable alternative shell support in nix-darwin.
+          # programs.fish.enable = true;
+
+          # Set Git commit hash for darwin-version.
+          system.configurationRevision = self.rev or self.dirtyRev or null;
+
+          # Used for backwards compatibility, please read the changelog before changing.
+          # $ darwin-rebuild changelog
+          system.stateVersion = 5;
+
+          # The platform the configuration will be used on.
+          nixpkgs.hostPlatform = "aarch64-darwin";
+
+          users.users.falcon = {
+            name = "falcon";
+            home = "/Users/falcon";
+          };
+
+        };
+      homeconfig =
+        { pkgs, ... }:
+        {
+          home.stateVersion = "24.05";
+
+          home.sessionVariables = {
+            EDITOR = "nvim";
+          };
+
+          programs.nushell = {
+            enable = true;
+            shellAliases = {
+              rebuild = "darwin-rebuild switch --flake ~/nix#egg";
+              keepass = "${pkgs.keepassxc}/Applications/KeePassXC.app/Contents/MacOS/KeePassXC";
+              signal = "${pkgs.signal-desktop}/Applications/Signal.app/Contents/MacOS/Signal";
+            };
+            extraConfig = ''
+              $env.config = {
+                show_banner: false,
+              }
+            '';
+          };
+
+          programs.zsh = {
+            enable = true;
+            shellAliases = {
+              rebuild = "darwin-rebuild switch --flake ~/nix#egg";
+              keepass = "${pkgs.keepassxc}/Applications/KeePassXC.app/Contents/MacOS/KeePassXC";
+              signal = "${pkgs.signal-desktop}/Applications/Signal.app/Contents/MacOS/Signal";
+            };
+          };
+
+          programs.fzf = {
+            enable = true;
+          };
+
+          programs.zoxide = {
+            enable = true;
+            enableZshIntegration = true;
+            enableNushellIntegration = true;
+          };
+
+          programs.starship = {
+            enable = true;
+            enableZshIntegration = true;
+            enableNushellIntegration = true;
+          };
+
+          programs.wezterm = {
+            enable = true;
+            extraConfig = ''
+                        local wezterm = require 'wezterm'
+                        local config = wezterm.config_builder()
+
+                        config.default_prog = {"/etc/profiles/per-user/falcon/bin/nu"}
+
+                        config.front_end = "WebGpu"
+                        config.webgpu_power_preference = "HighPerformance"
+
+                        config.color_scheme = "Sea Shells (Gogh)"
+                        config.hide_tab_bar_if_only_one_tab = true
+                        config.tab_bar_at_bottom = true
+                        config.window_decorations = "RESIZE"
+                        config.window_padding = {
+                          top = 0,
+                          left = 0,
+                          right = 0,
+                          bottom = -4,
+                        }
+
+                        config.keys = {
+                          {key = "p", mods = "OPT", action = wezterm.action.ActivateCommandPalette},
+                          {key = "v", mods = "OPT", action = wezterm.action.SplitHorizontal},
+                          {key = "s", mods = "OPT", action = wezterm.action.SplitVertical},
+                          {key = "h", mods = "OPT", action = wezterm.action.ActivatePaneDirection("Left")},
+                          {key = "j", mods = "OPT", action = wezterm.action.ActivatePaneDirection("Down")},
+                          {key = "k", mods = "OPT", action = wezterm.action.ActivatePaneDirection("Up")},
+                          {key = "l", mods = "OPT", action = wezterm.action.ActivatePaneDirection("Right")},
+                        }
+
+                        return config
+              	      '';
+          };
+
+          programs.neovim = {
+            enable = true;
+            viAlias = true;
+            vimAlias = true;
+            vimdiffAlias = true;
+          };
+
+          programs.git = {
+            enable = true;
+            userName = "orbit-stabilizer";
+            userEmail = "orbit-stabilizer@tuta.io";
+            extraConfig = {
+              init.defaultBranch = "main";
+            };
+          };
+        };
+    in
+    {
+      # Build darwin flake using:
+      # $ darwin-rebuild build --flake .#egg
+      darwinConfigurations."egg" = nix-darwin.lib.darwinSystem {
+        specialArgs.pkgs = import nixpkgs {
+          system = "aarch64-darwin";
+          config.allowUnfree = true;
+        };
+        modules = [
+          configuration
+          home-manager.darwinModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              verbose = true;
+              users.falcon = homeconfig;
+            };
+          }
+          nix-homebrew.darwinModules.nix-homebrew
+          {
+            nix-homebrew = {
+              enable = true;
+              # Apple Silicon Only
+              enableRosetta = true;
+              # User owning Homebrew prefix
+              user = "falcon";
+            };
+          }
+        ];
+      };
+    };
+}
