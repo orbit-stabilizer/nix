@@ -94,32 +94,6 @@
 
           services.skhd = {
             enable = true;
-            skhdConfig = ''
-                                      # change monitor focus
-                                      cmd - m : yabai -m display --focus next || yabai -m display --focus first
-
-                                      # move windows
-                                      shift + cmd - h : yabai -m window --warp west || $(yabai -m window --display west; yabai -m display --focus west)
-                                      shift + cmd - j : yabai -m window --warp south || $(yabai -m window --display south; yabai -m display --focus south)
-                                      shift + cmd - k : yabai -m window --warp north || $(yabai -m window --display north; yabai -m display --focus north)
-                                      shift + cmd - l : yabai -m window --warp east || $(yabai -m window --display east; yabai -m display --focus east)
-
-                                      # focus windows
-                                      cmd - x : yabai -m window --focus recent || yabai -m display --focus recent
-                                      cmd - h : yabai -m window --focus west || yabai -m display --focus west
-                                      cmd - j : yabai -m window --focus south || yabai -m display --focus south
-                                      cmd - k : yabai -m window --focus north || yabai -m display --focus north
-                                      cmd - l : yabai -m window --focus east || yabai -m display --focus east
-
-                                      # Open terminal
-                                      cmd - return : ~/Applications/"Home Manager Apps"/WezTerm.app/wezterm
-
-                                      # Open browser
-                                      shift + cmd - return : open -na /run/current-system/sw/bin/brave
-
-              			# Open discord
-              			shift + ctrl - return : /run/current-system/sw/bin/Discord
-                            	'';
           };
 
           # Necessary for using flakes on this system.
