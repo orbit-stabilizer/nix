@@ -71,6 +71,7 @@
             enable = true;
             casks = [
               "obs"
+              "raycast"
             ];
             onActivation.cleanup = "zap";
             onActivation.autoUpdate = true;
