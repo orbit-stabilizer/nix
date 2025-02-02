@@ -44,7 +44,6 @@
             pkgs.cargo
             pkgs.nixfmt-rfc-style
             pkgs.zoom-us
-            pkgs.netflix
             pkgs.quarto
             pkgs.stow
           ];
