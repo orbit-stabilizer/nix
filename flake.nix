@@ -46,6 +46,9 @@
             pkgs.zoom-us
             pkgs.quarto
             pkgs.stow
+            pkgs.python313
+            pkgs.uv
+            pkgs.zulu23
           ];
 
           # Setting MacOS settings
@@ -126,6 +129,8 @@
           home.sessionVariables = {
             EDITOR = "nvim";
           };
+
+          programs.home-manager.enable = true;
 
           programs.nushell = {
             enable = true;
