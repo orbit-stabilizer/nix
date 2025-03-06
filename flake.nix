@@ -71,6 +71,9 @@
           # Setting up Homebrew
           homebrew = {
             enable = true;
+            brews = [
+              "leiningen"
+            ];
             casks = [
               "obs"
               "raycast"
@@ -92,7 +95,12 @@
               focus_follows_mouse = "autoraise";
               mouse_follows_focus = "on";
               window_placement = "second_child";
+              windw_shadow = "off";
             };
+            extraConfig = ''
+              yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+              sudo yabai --load-sa
+            '';
           };
 
           services.skhd = {
